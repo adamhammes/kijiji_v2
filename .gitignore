@@ -1,6 +1,7 @@
 .scrapy/
 venv/
 *.sqlite3
+*.sqlite3.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

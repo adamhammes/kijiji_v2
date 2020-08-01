@@ -7,6 +7,7 @@ from scrapy.utils.project import get_project_settings
 import kijiji_v2.frontend
 import kijiji_v2.geocode
 import kijiji_v2.process
+import kijiji_v2.upload
 
 
 def crawl():
@@ -27,6 +28,10 @@ def frontend():
     kijiji_v2.frontend.run()
 
 
+def upload():
+    kijiji_v2.upload.upload()
+
+
 def do_all():
     urllib3_logger = logging.getLogger("urllib3")
     urllib3_logger.setLevel(logging.CRITICAL)
@@ -39,7 +44,13 @@ def do_all():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    commands = {"crawl": crawl, "geocode": geocode, "all": do_all, "frontend": frontend}
+    commands = {
+        "crawl": crawl,
+        "geocode": geocode,
+        "all": do_all,
+        "frontend": frontend,
+        "upload": upload,
+    }
 
     subparsers = parser.add_subparsers(dest="command", required=True)
     for command_name in commands.keys():
