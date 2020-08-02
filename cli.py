@@ -34,18 +34,23 @@ def upload():
     kijiji_v2.upload.upload()
 
 
-def do_all():
 def deploy():
     rebuild_endpoint = os.environ["NETLIFY_REBUILD_ENDPOINT"]
     requests.post(rebuild_endpoint, {})
 
 
+def do_all(deploy_site=False):
     urllib3_logger = logging.getLogger("urllib3")
     urllib3_logger.setLevel(logging.CRITICAL)
 
     crawl()
     process()
     geocode()
+    frontend()
+
+    if deploy_site:
+        upload()
+        deploy()
 
 
 if __name__ == "__main__":
@@ -54,7 +59,6 @@ if __name__ == "__main__":
     commands = {
         "crawl": crawl,
         "geocode": geocode,
-        "all": do_all,
         "frontend": frontend,
         "upload": upload,
         "deploy": deploy,
@@ -69,9 +73,14 @@ if __name__ == "__main__":
     process_parser.add_argument("--limit", type=int)
     process_parser.add_argument("--overwrite", action="store_true")
 
+    all_parser = subparsers.add_parser("all")
+    all_parser.add_argument("--deploy", action="store_true")
+
     args = parser.parse_args()
 
     if args.command == "process":
         process(args.url, args.limit, args.overwrite)
+    elif args.command == "all":
+        do_all(args.deploy)
     else:
         commands[args.command]()
