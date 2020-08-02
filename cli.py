@@ -1,6 +1,8 @@
 import argparse
 import logging
+import os
 
+import requests
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
@@ -33,6 +35,11 @@ def upload():
 
 
 def do_all():
+def deploy():
+    rebuild_endpoint = os.environ["NETLIFY_REBUILD_ENDPOINT"]
+    requests.post(rebuild_endpoint, {})
+
+
     urllib3_logger = logging.getLogger("urllib3")
     urllib3_logger.setLevel(logging.CRITICAL)
 
@@ -50,6 +57,7 @@ if __name__ == "__main__":
         "all": do_all,
         "frontend": frontend,
         "upload": upload,
+        "deploy": deploy,
     }
 
     subparsers = parser.add_subparsers(dest="command", required=True)
