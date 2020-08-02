@@ -61,7 +61,7 @@ def get_room_element(tree, element_name: str) -> typing.Optional[str]:
         return None
 
     text_parts = rooms_elements[0].text_content().split()[1:]
-    return ' '.join(text_parts)
+    return " ".join(text_parts)
 
 
 def select(tree, selector):
