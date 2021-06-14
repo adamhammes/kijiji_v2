@@ -80,14 +80,14 @@ def read_price(tree) -> typing.Optional[int]:
     valid_chars = "0123456789,"
     valid_price = "".join(c for c in raw_price if c in valid_chars)
 
-    price_re = re.compile(r"(\d+),(\d+)")
+    price_re = re.compile(r"(\d+)(?:,(\d+))?")
     match = price_re.search(valid_price)
 
     if not match:
         return None
 
     dollars = int(match.group(1))
-    cents = int(match.group(2))
+    cents = int(match.group(2) or 0)
 
     return dollars * 100 + cents
 
