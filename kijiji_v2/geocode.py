@@ -25,7 +25,7 @@ class ApartmentAddress(typing.NamedTuple):
 
 def geocode(
     apartment_scrape_id, raw_address
-) -> (typing.Optional[ApartmentAddress], bool):
+) -> typing.Tuple[typing.Optional[ApartmentAddress], bool]:
     response = requests.get(
         "http://localhost:5000", params={"address": raw_address}
     ).json()
