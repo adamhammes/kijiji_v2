@@ -41,4 +41,4 @@ sherbrooke = ScrapeOrigin(
     radius=30,
 )
 
-enabled_origins = [quebec, montreal]
+enabled_origins = [quebec]
