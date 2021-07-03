@@ -8,7 +8,7 @@ import tqdm
 
 from .scrape_config import ScrapeOrigin, enabled_origins
 
-RATE_LIMIT_PERIOD = 3.0  # seconds
+RATE_LIMIT_PERIOD = 3.2  # seconds
 INSERT_ORIGIN = """
 INSERT INTO ScrapeOrigin (
     short_code,
