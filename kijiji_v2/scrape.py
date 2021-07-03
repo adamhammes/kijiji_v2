@@ -1,13 +1,14 @@
 import sqlite3
+import time
 import typing as t
 
 import lxml.etree
-import ratelimit
 import requests
 import tqdm
 
 from .scrape_config import ScrapeOrigin, enabled_origins
 
+RATE_LIMIT_PERIOD = 3.0  # seconds
 INSERT_ORIGIN = """
 INSERT INTO ScrapeOrigin (
     short_code,
@@ -42,11 +43,8 @@ class Listing(t.NamedTuple):
     url: str
 
 
-@ratelimit.sleep_and_retry
-@ratelimit.limits(calls=1, period=3.2)
 def rate_limited_get(url: str) -> requests.Response:
-    import requests
-
+    time.sleep(RATE_LIMIT_PERIOD)
     return requests.get(url)
 
 
