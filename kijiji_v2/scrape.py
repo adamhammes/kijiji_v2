@@ -1,0 +1,129 @@
+import sqlite3
+import typing as t
+
+import lxml.etree
+import ratelimit
+import requests
+import tqdm
+
+from .scrape_config import ScrapeOrigin, enabled_origins
+
+INSERT_ORIGIN = """
+INSERT INTO ScrapeOrigin (
+    short_code,
+    full_name,
+    kijiji_id,
+    kijiji_name,
+    latitude,
+    longitude,
+    radius
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+"""
+
+INSERT_SCRAPE = """
+INSERT INTO ApartmentScrape (
+    scrape_origin_short_code,
+    url,
+    content
+) VALUES (?, ?, ?);
+"""
+
+BASE_URL = "https://www.kijiji.ca/"
+
+
+class IndexPage(t.NamedTuple):
+    origin: ScrapeOrigin
+    tree: lxml.etree.Element
+    index: int
+
+
+class Listing(t.NamedTuple):
+    origin: ScrapeOrigin
+    url: str
+
+
+@ratelimit.sleep_and_retry
+@ratelimit.limits(calls=1, period=3.2)
+def rate_limited_get(url: str) -> requests.Response:
+    import requests
+
+    return requests.get(url)
+
+
+def prepare_db():
+    db = sqlite3.connect("db.sqlite3")
+
+    with open("schema.sql") as schema:
+        db.executescript(schema.read())
+
+    cursor = db.cursor()
+    for origin in enabled_origins:
+        cursor.execute(INSERT_ORIGIN, origin)
+
+    return db
+
+
+def build_apartment_listing_url(origin: ScrapeOrigin) -> str:
+    return "".join(
+        [
+            BASE_URL,
+            "b-appartement-condo/",
+            origin.kijiji_name,
+            "c37",
+            origin.kijiji_id,
+            "?ad=offering",
+        ]
+    )
+
+
+def crawl():
+    index_pages: t.List[IndexPage] = []
+    listings: t.List[Listing] = []
+
+    print("Scraping original results page")
+    for origin in enabled_origins:
+        origin_url = build_apartment_listing_url(origin)
+        print(f"Fetching initial results page for {origin.full_name} ({origin_url})")
+        response = rate_limited_get(origin_url)
+        tree = lxml.html.fromstring(response.content)
+        index_pages.append(IndexPage(origin, tree, 0))
+
+    print("Building the full list of results pages")
+    for results_page in index_pages:
+        seen_urls = {listing.url for listing in listings}
+
+        apartment_nodes = results_page.tree.cssselect(".info-container a.title")
+        apartment_urls = {
+            BASE_URL.rstrip("/") + node.get("href") for node in apartment_nodes
+        } - seen_urls
+
+        print(
+            f"Found {len(apartment_urls)} apartments on {results_page.origin.full_name}, page {results_page.index}"
+        )
+
+        listings += [Listing(results_page.origin, url) for url in apartment_urls]
+
+        next_nodes = results_page.tree.cssselect('[title~="Suivante"]')
+        if next_nodes:
+            url = BASE_URL.rstrip("/") + next_nodes[0].get("href")
+            tree = lxml.html.fromstring(rate_limited_get(url).text)
+            next_index = results_page.index + 1
+            print(
+                f"Found link to page {next_index} for {results_page.origin.full_name} ({url})"
+            )
+            index_pages.append(
+                IndexPage(results_page.origin, tree, results_page.index + 1)
+            )
+
+    print(f"Found {len(listings)} total listings")
+    db = prepare_db()
+    for listing in tqdm.tqdm(listings):
+        origin, url = listing
+        page = rate_limited_get(url).text
+
+        row = origin.short_code, url, page
+        db.cursor().execute(INSERT_SCRAPE, row)
+        db.commit()
+
+    db.close()
+

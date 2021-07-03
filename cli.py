@@ -4,12 +4,11 @@ import logging
 import os
 
 import requests
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
 
 import kijiji_v2.frontend
 import kijiji_v2.geocode
 import kijiji_v2.process
+import kijiji_v2.scrape
 import kijiji_v2.upload
 
 
@@ -17,9 +16,7 @@ def crawl():
     """For each city configured in `scrape_config.py`, crawl through Kijiji's
     apartments listings and save the raw HTML in the `ApartmentScrape` table.
     """
-    crawler = CrawlerProcess(get_project_settings())
-    crawler.crawl("apartments")
-    crawler.start()
+    kijiji_v2.scrape.crawl()
 
 
 def process(url=None, limit=None, overwrite=False):
