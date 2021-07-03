@@ -44,8 +44,16 @@ class Listing(t.NamedTuple):
 
 
 def rate_limited_get(url: str) -> requests.Response:
-    time.sleep(RATE_LIMIT_PERIOD)
-    return requests.get(url)
+    retry_count = 3
+    for i in range(retry_count):
+        try:
+            time.sleep(RATE_LIMIT_PERIOD)
+            return requests.get(url)
+        except Exception as e:
+            if i < retry_count - 1:
+                print(f"exception fetching {url}, retrying")
+            else:
+                raise e
 
 
 def prepare_db():
