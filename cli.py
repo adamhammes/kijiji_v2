@@ -2,6 +2,7 @@ import argparse
 import inspect
 import logging
 import os
+import pathlib
 
 import requests
 
@@ -66,6 +67,9 @@ def do_all(deploy_site=False, disable_progress=True):
     a file). Make sure the geocoding server is accessible at
     http://localhost:5000 before running this command.
     """
+
+    for db_file in ["db.sqlite3", "frontend.sqlite3"]:
+        pathlib.Path(db_file).unlink(missing_ok=True)
 
     urllib3_logger = logging.getLogger("urllib3")
     urllib3_logger.setLevel(logging.CRITICAL)
