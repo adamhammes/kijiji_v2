@@ -46,7 +46,7 @@ def geocode(
     )
 
 
-def run():
+def run(disable_progress=False):
     db = sqlite3.connect("db.sqlite3")
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys=ON")
@@ -59,7 +59,7 @@ def run():
     successfully_geocoded = 0
 
     all_results = cursor.fetchall()
-    for row in tqdm.tqdm(all_results):
+    for row in tqdm.tqdm(all_results, disable=disable_progress):
         address, from_cache = geocode(row["apartment_scrape_id"], row["raw_address"])
         if address is not None:
             db.cursor().execute(INSERT_ADDRESS, address)

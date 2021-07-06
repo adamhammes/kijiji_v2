@@ -13,7 +13,7 @@ def upload_hook(t):
     return inner
 
 
-def upload():
+def upload(disable_progress=False):
     s3 = boto3.client("s3")
 
     dbs = {
@@ -34,7 +34,11 @@ def upload():
             compressed_size = len(compressed_file)
 
             with tqdm.tqdm(
-                total=compressed_size, unit="B", unit_scale=True, desc=disk_name
+                total=compressed_size,
+                unit="B",
+                unit_scale=True,
+                desc=disk_name,
+                disable=disable_progress,
             ) as t:
                 s3.upload_fileobj(
                     io.BytesIO(compressed_file),

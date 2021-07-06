@@ -181,7 +181,7 @@ def process(row):
     )
 
 
-def run(limit=None, url=None, overwrite=False):
+def run(limit=None, url=None, overwrite=False, disable_progress=False):
     db = sqlite3.connect("db.sqlite3")
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys=ON")
@@ -206,7 +206,7 @@ def run(limit=None, url=None, overwrite=False):
     cursor.execute("BEGIN TRANSACTION;")
 
     results = []
-    for row in tqdm.tqdm(rows):
+    for row in tqdm.tqdm(rows, disable=disable_progress):
         try:
             details = process(dict(row))
             cursor.execute(INSERT_DETAILS, details)

@@ -82,7 +82,7 @@ def build_apartment_listing_url(origin: ScrapeOrigin) -> str:
     )
 
 
-def crawl():
+def crawl(disable_progress=False):
     index_pages: t.List[IndexPage] = []
     listings: t.List[Listing] = []
 
@@ -123,7 +123,7 @@ def crawl():
 
     print(f"Found {len(listings)} total listings")
     db = prepare_db()
-    for listing in tqdm.tqdm(listings):
+    for listing in tqdm.tqdm(listings, disable=disable_progress):
         origin, url = listing
         page = rate_limited_get(url).text
 
