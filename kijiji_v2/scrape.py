@@ -1,8 +1,10 @@
+import datetime
 import sqlite3
 import time
 import typing as t
 
 import lxml.etree
+import lxml.html
 import requests
 import tqdm
 
@@ -19,6 +21,10 @@ INSERT INTO ScrapeOrigin (
     longitude,
     radius
 ) VALUES (?, ?, ?, ?, ?, ?, ?);
+"""
+
+INSERT_METADATA = """
+INSERT INTO ScrapeMetadata (timestamp) VALUES (?);
 """
 
 INSERT_SCRAPE = """
@@ -65,6 +71,9 @@ def prepare_db():
     cursor = db.cursor()
     for origin in enabled_origins:
         cursor.execute(INSERT_ORIGIN, origin)
+
+    timestamp = datetime.datetime.utcnow().isoformat()
+    cursor.execute(INSERT_METADATA, (timestamp,))
 
     return db
 

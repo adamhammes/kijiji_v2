@@ -1,3 +1,7 @@
+CREATE TABLE ScrapeMetadata (
+  timestamp TEXT PRIMARY KEY
+);
+
 CREATE TABLE ScrapeOrigin (
   short_code TEXT PRIMARY KEY,
   full_name TEXT NOT NULL,

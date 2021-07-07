@@ -58,6 +58,9 @@ INSERT INTO Apartment (
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 """
 
+SELECT_METADATA = "SELECT * FROM ScrapeMetadata;"
+INSERT_METADATA = "INSERT INTO ScrapeMetadata (timestamp) VALUES (?)"
+
 
 def run():
     read_db = sqlite3.connect("db.sqlite3")
@@ -78,6 +81,10 @@ def run():
     read_cursor.execute(APARTMENTS_QUERY)
     for row in read_cursor:
         write_cursor.execute(INSERT_APARTMENT, row)
+
+    read_cursor.execute(SELECT_METADATA)
+    for row in read_cursor:
+        write_cursor.execute(INSERT_METADATA, row)
 
     write_db.commit()
     read_db.close()
