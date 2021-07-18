@@ -1,6 +1,6 @@
 import datetime
-import gzip
-import io
+import os
+import subprocess
 
 import boto3
 import tqdm
@@ -27,24 +27,23 @@ def upload(disable_progress=False):
     print("Saving files to s3")
 
     for disk_name, s3_name in dbs.items():
+        subprocess.run(["gzip", disk_name], check=True)
+
+        gzipped_name = disk_name + ".gz"
         object_name = f"v3/{timestamp}-{s3_name}"
+        compressed_size = os.path.getsize(gzipped_name)
 
-        with open(disk_name, "rb") as file:
-            compressed_file = gzip.compress(file.read())
-            compressed_size = len(compressed_file)
+        with tqdm.tqdm(
+            total=compressed_size,
+            unit="B",
+            unit_scale=True,
+            desc=disk_name,
+            disable=disable_progress,
+        ) as t:
+            s3.upload_file(
+                gzipped_name, "kijiji-apartments", object_name, Callback=upload_hook(t),
+            )
 
-            with tqdm.tqdm(
-                total=compressed_size,
-                unit="B",
-                unit_scale=True,
-                desc=disk_name,
-                disable=disable_progress,
-            ) as t:
-                s3.upload_fileobj(
-                    io.BytesIO(compressed_file),
-                    "kijiji-apartments",
-                    object_name,
-                    Callback=upload_hook(t),
-                )
+        os.remove(gzipped_name)
 
     print("...done")
