@@ -27,7 +27,7 @@ def upload(disable_progress=False):
     print("Saving files to s3")
 
     for disk_name, s3_name in dbs.items():
-        subprocess.run(["gzip", disk_name], check=True)
+        subprocess.run(["gzip", "--force", disk_name], check=True)
 
         gzipped_name = disk_name + ".gz"
         object_name = f"v3/{timestamp}-{s3_name}"
